@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"runtime"
 )
-
+// print error
+//
+// example: defer errors.PrintErr()
 func PrintErr() {
 	if err := recover(); err != nil {
 		path, fe := filepath.Abs(os.Args[0])

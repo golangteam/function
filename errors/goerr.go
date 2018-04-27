@@ -9,36 +9,45 @@ var (
 	FormatString = "%v\nthe trace error is\n%s"
 )
 
-//按格式返回一个错误，同时携带原始的错误信息
+// return a error with original error
 //
-//  返回 error
+// @param err     error          original error
+// @param format  string         string format
+// @param p       ...interface{} additional parameter
+// @return error
 func NewError(err error, format string, p ...interface{}) error {
 	return fmt.Errorf(FormatString, fmt.Sprintf(format, p...), err)
 }
 
-//返回一个错误
-//
-//  返回 error
+// return a error
+// @param format  string         string format
+// @param p       ...interface{} additional parameter
+// @return  error
 func New(format string, p ...interface{}) error {
 	return fmt.Errorf(format, p...)
 }
 
-//按格式返回一个错误，同时携带错误代码和原始的错误信息
+//Returns an error in format with both the error code and the original error message
 //
-//  返回 error
+// @param code int the code of error
+// @param format  string         string format
+// @param p       ...interface{} additional parameter
+// @return error
 func NewCodeError(code int, format string, p ...interface{}) error {
 	txt := fmt.Sprintf(FormatString, fmt.Sprintf(format, p...))
 	newerr := Error{code, txt}
 	return error(newerr)
 }
 
-//新的error类型
+//new error type
 type Error struct {
 	Code int
 	Text string
 }
 
-//实现error接口
-func (this Error) Error() string {
-	return fmt.Sprintf("Code is %d, Error Text is %s", this.Code, this.Text)
+//Implement error interface
+//
+// @return string
+func (e Error) Error() string {
+	return fmt.Sprintf("Code is %d, Error Text is %s", e.Code, e.Text)
 }
