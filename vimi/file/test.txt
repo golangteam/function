@@ -1,0 +1,2 @@
+test_string
+test_byte
