@@ -1,8 +1,12 @@
 package stop
 
 import (
+	"os"
 	"os/exec"
 	"time"
+
+	"github.com/golang/glog"
+	"github.com/golangteam/function/file"
 )
 
 func LinuxPid(pid string, sig ...string) (err error) {
@@ -26,4 +30,17 @@ func LinuxPid(pid string, sig ...string) (err error) {
 		}
 	}
 	return
+}
+func LinuxStop(pidFile string) {
+	if pid, err := file.GetPid(pidFile); err == nil {
+		if err = LinuxPid(pid); err != nil {
+			glog.Error("stop error", err)
+		} else {
+			os.Remove(pidFile)
+		}
+	} else {
+		glog.Warning("pid file is not found")
+	}
+	os.Exit(0)
+
 }
