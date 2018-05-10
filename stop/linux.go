@@ -9,6 +9,7 @@ import (
 	"github.com/golangteam/function/file"
 )
 
+
 func LinuxPid(pid string, sig ...string) (err error) {
 	if len(sig) == 0 {
 		sig = append(sig, "USR2")
