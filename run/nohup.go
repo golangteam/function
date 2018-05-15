@@ -30,14 +30,16 @@ func Nohup(start func() error, exit func(error), out *os.File, mon ...os.Signal)
 	signal.Notify(sig, mon...)
 	go func() {
 		if err := start(); err != nil {
-			exit(err)
+			if exit != nil {
+				exit(err)
+			}
 			sig <- syscall.SIGABRT
 		} else {
 			sig <- syscall.SIGQUIT
 		}
 	}()
 	s := <-sig
-	if s != syscall.SIGABRT {
+	if s != syscall.SIGABRT && exit != nil {
 		exit(errors.New("signal:", s))
 	}
 }
