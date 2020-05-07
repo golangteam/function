@@ -1,5 +1,5 @@
 /*
-@Time : 2018/5/10 10:52 
+@Time : 2018/5/10 10:52
 @Author : seefan
 @File : nohup
 @Software: function
@@ -10,16 +10,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/golangteam/function/errors"
 )
 
-//nohup function
-func Nohup(start func() error, exit func(error), out *os.File, mon ...os.Signal) {
+//Nohup function
+func Nohup(start func() error, exit func(os.Signal, error), out *os.File, mon ...os.Signal) {
 	if os.Getppid() != 1 {
 		args := append([]string{os.Args[0]}, os.Args[1:]...)
 		if out == nil {
 			out = os.NewFile(uintptr(syscall.Stderr), "/dev/null")
-			defer out.Close()
+			defer func() {
+				if err := out.Close(); err != nil {
+					println(err.Error())
+				}
+			}()
 		}
 		if _, err := os.StartProcess(os.Args[0], args, &os.ProcAttr{Files: []*os.File{os.Stdin, out, out}}); err != nil {
 			println(err.Error())
@@ -31,7 +34,7 @@ func Nohup(start func() error, exit func(error), out *os.File, mon ...os.Signal)
 	go func() {
 		if err := start(); err != nil {
 			if exit != nil {
-				exit(err)
+				exit(syscall.SIGABRT, err)
 			}
 			sig <- syscall.SIGABRT
 		} else {
@@ -40,6 +43,6 @@ func Nohup(start func() error, exit func(error), out *os.File, mon ...os.Signal)
 	}()
 	s := <-sig
 	if s != syscall.SIGABRT && exit != nil {
-		exit(errors.New("signal:", s))
+		exit(s, nil)
 	}
 }
