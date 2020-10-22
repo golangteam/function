@@ -14,13 +14,8 @@ import (
 	"github.com/golangteam/function/errors"
 )
 
-var (
-	//IsDebug is debug
-	IsDebug = true
-)
-
-//Run
-func Run(r Runnable, nohupFile ...string) {
+//Run the new Runnable
+func Run(run func() Runnable, outFile ...string) {
 	defer errors.PrintErr()
 	cmd := "debug"
 	if len(os.Args) > 1 {
@@ -40,8 +35,8 @@ func Run(r Runnable, nohupFile ...string) {
 			println(err.Error())
 		}
 		var f *os.File
-		if len(nohupFile) > 0 {
-			logFile := filepath.Join(path, nohupFile[0])
+		if len(outFile) > 0 {
+			logFile := filepath.Join(path, outFile[0])
 			tmp := filepath.Dir(logFile)
 			if _, err := os.Stat(tmp); os.IsNotExist(err) {
 				if err := os.MkdirAll(tmp, 0764); err != nil {
@@ -57,17 +52,16 @@ func Run(r Runnable, nohupFile ...string) {
 				}
 			}()
 		}
-		IsDebug = false
-		Nohup(func() error {
-			return start(path, r)
-		}, func(signal os.Signal, e error) {
-			if e != nil {
-				println(e.Error())
-			} else {
-				if e = r.Stop(); e != nil {
-					println(e.Error())
-				}
+		nohup(func(sig chan<- os.Signal) {
+			r := run()
+			if err := r.Start(); err != nil {
+				sig <- syscall.SIGABRT
+				return
 			}
+			if err := r.Stop(); err != nil {
+				println(err.Error())
+			}
+
 		}, f, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	case "stop":
@@ -75,17 +69,9 @@ func Run(r Runnable, nohupFile ...string) {
 			println(err.Error())
 		}
 	default:
-		if err := start(path, r); err != nil {
+		r := run()
+		if err := r.Start(); err != nil {
 			println(err.Error())
 		}
 	}
-}
-
-func start(startPath string, r Runnable) error {
-	//load config
-
-	if err := r.Start(); err != nil {
-		return err
-	}
-	return nil
 }

@@ -12,8 +12,8 @@ import (
 	"syscall"
 )
 
-//Nohup function
-func Nohup(start func() error, exit func(os.Signal, error), out *os.File, mon ...os.Signal) {
+//nohup function
+func nohup(start func(chan<- os.Signal), out *os.File, mon ...os.Signal) {
 	if os.Getppid() != 1 {
 		args := append([]string{os.Args[0]}, os.Args[1:]...)
 		if out == nil {
@@ -31,18 +31,6 @@ func Nohup(start func() error, exit func(os.Signal, error), out *os.File, mon ..
 	}
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, mon...)
-	go func() {
-		if err := start(); err != nil {
-			if exit != nil {
-				exit(syscall.SIGABRT, err)
-			}
-			sig <- syscall.SIGABRT
-		} else {
-			sig <- syscall.SIGQUIT
-		}
-	}()
-	s := <-sig
-	if s != syscall.SIGABRT && exit != nil {
-		exit(s, nil)
-	}
+	go start(sig)
+	<-sig
 }
