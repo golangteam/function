@@ -13,5 +13,5 @@ func stopByPidFile(pidFile string) error {
 		return os.Remove(pidFile)
 
 	}
-	return err
+	return nil
 }

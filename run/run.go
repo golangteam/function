@@ -28,12 +28,9 @@ func Run(run func() Runnable, outFile ...string) {
 	}
 	path = filepath.Dir(path)
 	pidFile := filepath.Join(path, "pid.save")
-
+	// println("cmd is ", os.Getpid(), " args is ", strings.Join(os.Args, ","))
 	switch cmd {
 	case "start":
-		if err := savePid(pidFile); err != nil {
-			println(err.Error())
-		}
 		var f *os.File
 		if len(outFile) > 0 {
 			logFile := filepath.Join(path, outFile[0])
@@ -54,6 +51,9 @@ func Run(run func() Runnable, outFile ...string) {
 		}
 		nohup(func(sig chan<- os.Signal) {
 			r := run()
+			if r == nil {
+				return
+			}
 			if err := r.Start(); err != nil {
 				sig <- syscall.SIGABRT
 				return
@@ -62,7 +62,7 @@ func Run(run func() Runnable, outFile ...string) {
 				println(err.Error())
 			}
 
-		}, f, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		}, f, pidFile, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	case "stop":
 		if err := stopByPidFile(pidFile); err != nil {
@@ -70,6 +70,9 @@ func Run(run func() Runnable, outFile ...string) {
 		}
 	default:
 		r := run()
+		if r == nil {
+			return
+		}
 		if err := r.Start(); err != nil {
 			println(err.Error())
 		}

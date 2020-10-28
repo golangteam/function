@@ -6,17 +6,21 @@ import (
 	"strconv"
 )
 
-func savePid(file string) error {
-	return ioutil.WriteFile(file, strconv.AppendInt(nil, int64(os.Getpid()), 10), 0764)
+func savePid(file string, pid int64) error {
+	return ioutil.WriteFile(file, strconv.AppendInt(nil, pid, 10), 0764)
 }
 func getPid(file string) (int, error) {
+	_, err := os.Stat(file)
+	if err != nil {
+		return 0, err
+	}
 	bs, err := ioutil.ReadFile(file)
 	if err != nil {
 		return 0, err
 	}
-	if i, err := strconv.Atoi(string(bs)); err != nil {
+	i, err := strconv.Atoi(string(bs))
+	if err != nil {
 		return 0, err
-	} else {
-		return i, nil
 	}
+	return i, nil
 }
