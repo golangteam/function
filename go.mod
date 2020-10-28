@@ -1,3 +1,3 @@
 module github.com/golangteam/function
 
-go 1.14
+go 1.10

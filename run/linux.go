@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func stopByPidFile(pidFile string) error {
+func StopByPidFile(pidFile string) error {
 	pid, err := getPid(pidFile)
 	if err == nil {
 		if err = Kill(pid); err != nil {

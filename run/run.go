@@ -65,7 +65,7 @@ func Run(run func() Runnable, outFile ...string) {
 		}, f, pidFile, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	case "stop":
-		if err := stopByPidFile(pidFile); err != nil {
+		if err := StopByPidFile(pidFile); err != nil {
 			println(err.Error())
 		}
 	default:
