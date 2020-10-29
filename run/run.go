@@ -52,6 +52,8 @@ func Run(run func() Runnable, outFile ...string) {
 		nohup(func(sig chan<- os.Signal) {
 			r := run()
 			if r == nil {
+				sig <- syscall.SIGABRT
+				println("Runnable stoped")
 				return
 			}
 			if err := r.Start(); err != nil {
