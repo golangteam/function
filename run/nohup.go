@@ -8,7 +8,6 @@ package run
 
 import (
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 )
@@ -24,20 +23,15 @@ func nohup(start func(chan<- os.Signal), out *os.File, pidFile string, mon ...os
 				}
 			}()
 		}
-		args := append([]string{}, os.Args[1:]...)
-		dm := exec.Command(os.Args[0], args...)
-		
-		dm.Start()
-		p, err := os.StartProcess(os.Args[0], args, &os.ProcAttr{Files: []*os.File{os.Stdin, out, out}})
+		//println("args is ", strings.Join(os.Args, " "))
+		_, err := os.StartProcess(os.Args[0], os.Args, &os.ProcAttr{Files: []*os.File{os.Stdin, out, out}})
 		if err != nil {
 			println(err.Error())
-		} else {
-			if err := savePid(pidFile, int64(p.Pid)); err != nil {
-				println(err.Error())
-			}
 		}
-		
 		return
+	}
+	if err := savePid(pidFile, int64(os.Getpid())); err != nil {
+		println(err.Error())
 	}
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, mon...)
