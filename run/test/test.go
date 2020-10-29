@@ -17,13 +17,16 @@ func main() {
 type Run struct{}
 
 func (r Run) Start() error {
+	println("run start")
 	println("args is ", strings.Join(os.Args, " "))
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 2; i++ {
 		println(i)
 		time.Sleep(time.Second)
 	}
+	time.Sleep(time.Minute)
 	return nil
 }
 func (r Run) Stop() error {
+	println("run stop")
 	return nil
 }

@@ -49,19 +49,24 @@ func Run(run func() Runnable, outFile ...string) {
 				}
 			}()
 		}
-		nohup(func(sig chan<- os.Signal) {
+		nohup(func(sig chan os.Signal, exit chan os.Signal) {
 			r := run()
 			if r == nil {
-				sig <- syscall.SIGABRT
 				println("Runnable stoped")
+				exit <- syscall.SIGABRT
 				return
 			}
-			if err := r.Start(); err != nil {
-				sig <- syscall.SIGABRT
-				return
-			}
+			go func() {
+				if err := r.Start(); err != nil {
+					sig <- syscall.SIGABRT
+				}
+			}()
+			<-sig //等待结束信号
 			if err := r.Stop(); err != nil {
 				println(err.Error())
+				exit <- syscall.SIGABRT
+			} else {
+				exit <- syscall.SIGQUIT
 			}
 
 		}, f, pidFile, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)

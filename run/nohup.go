@@ -14,7 +14,7 @@ import (
 )
 
 //nohup function
-func nohup(start func(chan<- os.Signal), out *os.File, pidFile string, mon ...os.Signal) {
+func nohup(start func(chan os.Signal, chan os.Signal), out *os.File, pidFile string, mon ...os.Signal) {
 	//println("nonup args is ", strings.Join(os.Args, " "))
 	if os.Getppid() != 1 {
 		if out == nil {
@@ -40,6 +40,7 @@ func nohup(start func(chan<- os.Signal), out *os.File, pidFile string, mon ...os
 	}
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, mon...)
-	go start(sig)
-	<-sig
+	exit := make(chan os.Signal)
+	go start(sig, exit)
+	<-exit
 }
