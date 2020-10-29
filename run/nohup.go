@@ -9,13 +9,13 @@ package run
 import (
 	"os"
 	"os/signal"
-	"strings"
+	"path/filepath"
 	"syscall"
 )
 
 //nohup function
 func nohup(start func(chan<- os.Signal), out *os.File, pidFile string, mon ...os.Signal) {
-	println("nonup args is ", strings.Join(os.Args, " "))
+	//println("nonup args is ", strings.Join(os.Args, " "))
 	if os.Getppid() != 1 {
 		if out == nil {
 			out = os.NewFile(uintptr(syscall.Stderr), "/dev/null")
@@ -25,7 +25,11 @@ func nohup(start func(chan<- os.Signal), out *os.File, pidFile string, mon ...os
 				}
 			}()
 		}
-		_, err := os.StartProcess(os.Args[0], os.Args, &os.ProcAttr{Files: []*os.File{os.Stdin, out, out}})
+		file := os.Args[0]
+		if f, err := filepath.Abs(os.Args[0]); err == nil {
+			file = f
+		}
+		_, err := os.StartProcess(file, os.Args, &os.ProcAttr{Files: []*os.File{os.Stdin, out, out}})
 		if err != nil {
 			println(err.Error())
 		}
