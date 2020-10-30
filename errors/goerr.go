@@ -34,7 +34,12 @@ func New(format string, p ...interface{}) error {
 // @param p       ...interface{} additional parameter
 // @return error
 func NewCodeError(code int, format string, p ...interface{}) error {
-	txt := fmt.Sprintf(FormatString, fmt.Sprintf(format, p...))
+	var txt string
+	if len(p) > 0 {
+		txt = fmt.Sprintf(FormatString, fmt.Sprintf(format, p...))
+	} else {
+		txt = format
+	}
 	newerr := Error{code, txt}
 	return error(newerr)
 }
