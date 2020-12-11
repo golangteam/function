@@ -7,12 +7,43 @@
 package run
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/golangteam/function/errors"
 )
+
+func ParseFlag(args []string) map[string]string {
+	re := make(map[string]string)
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			as := strings.Split(arg, "=")
+			if len(as) == 1 {
+				re[strings.TrimSpace(string(as[0][1:]))] = ""
+			} else if len(as) == 2 {
+				re[strings.TrimSpace(string(as[0][1:]))] = strings.TrimSpace(as[1])
+			}
+		} else {
+			re[arg] = ""
+		}
+	}
+	return re
+}
+func PrintUseage(name string, arg map[string]string) {
+	if _, ok := arg["-help"]; ok {
+		fmt.Printf("Useage: %s start -conf=prod.yaml\n", name)
+		fmt.Printf("        %s stop", name)
+		os.Exit(0)
+	}
+	if _, ok := arg["h"]; ok {
+		fmt.Printf("Useage: %s start -conf=prod.yaml", name)
+		fmt.Printf("        %s stop", name)
+		os.Exit(0)
+	}
+}
 
 //Run the new Runnable
 func Run(run func() Runnable, outFile ...string) {
