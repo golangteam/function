@@ -16,6 +16,7 @@ import (
 	"github.com/golangteam/function/errors"
 )
 
+//ParseFlag parse flags
 func ParseFlag(args []string) map[string]string {
 	re := make(map[string]string)
 	for _, arg := range args {
@@ -32,6 +33,8 @@ func ParseFlag(args []string) map[string]string {
 	}
 	return re
 }
+
+//PrintUseage print help infomation
 func PrintUseage(name string, arg map[string]string) {
 	if _, ok := arg["-help"]; ok {
 		fmt.Printf("Useage: %s start -conf=prod.yaml\n", name)
