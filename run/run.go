@@ -9,6 +9,7 @@ package run
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -114,7 +115,16 @@ func Run(run func() Runnable, outFile ...string) {
 		if r == nil {
 			return
 		}
-		if err := r.Start(); err != nil {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+		go func() {
+			if err := r.Start(); err != nil {
+				sig <- syscall.SIGABRT
+			}
+		}()
+		<-sig //等待结束信号
+		if err := r.Stop(); err != nil {
 			println(err.Error())
 		}
 	}
